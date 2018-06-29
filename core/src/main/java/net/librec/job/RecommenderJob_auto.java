@@ -29,39 +29,25 @@ import java.nio.file.StandardCopyOption;
 import java.util.*;
 
 /*
- @LibRec_Auto
+ @librec-auto
  @Aldo-OG
  */
 
 public class RecommenderJob_auto extends RecommenderJob  {
          /*  Attributes  */
     private Configuration conf;
-    private Properties global_conf;
     private DataModel dataModel;
     private Map<String, List<Double>> cvEvalResults;
-
-    // counter for test and train split.  Relevant only for CV but works with all split scenarios
-    private Integer counter_train;
-    private Integer counter_test;
-
-    // counter for sub-experiment, will keep track of all times runJob() is executed when in memory.
-    // Presumes reset when running new job from LibRecAuto
-    private Integer counter_experiment;
 
 
           /*  Constructor  */
     public RecommenderJob_auto(Configuration conf) {
         super(conf);
         this.conf = conf;
-        this.counter_train=0;
-        this.counter_test=0;
-        load_global_conf();
     }
 
     @Override
     public void runJob() throws LibrecException, IOException, ClassNotFoundException {
-        update_experiment_count();
-        copy_conf();
         String modelSplit = conf.get("data.model.splitter");
         switch (modelSplit) {
             case "kcv": {
@@ -126,12 +112,10 @@ public class RecommenderJob_auto extends RecommenderJob  {
     @Override
     public void saveResult(List<RecommendedItem> recommendedList) throws LibrecException, IOException, ClassNotFoundException {
         if (recommendedList != null && recommendedList.size() > 0) {
-            // Make output path relevant to token
-            update_result_dir();
             //String algoSimpleName = DriverClassUtil.getDriverName(getRecommenderClass());
             String outputPath = conf.get("dfs.result.dir");
             if (null != dataModel && (dataModel.getDataSplitter() instanceof KCVDataSplitter || dataModel.getDataSplitter() instanceof LOOCVDataSplitter) && null != conf.getInt("data.splitter.cv.index")) {
-                outputPath = outputPath + "-" + String.valueOf(conf.getInt("data.splitter.cv.index"));
+                outputPath = outputPath + "/out-" + String.valueOf(conf.getInt("data.splitter.cv.index"));
             }
             LOG.info("Result path is " + outputPath);
             // convert itemList to string
@@ -214,37 +198,6 @@ public class RecommenderJob_auto extends RecommenderJob  {
 
           /* Aux functions */
 
-    // Next two functions use excessive reading and writing
-    private void load_global_conf(){
-        // Init
-        Properties global_conf = new Properties();
-        InputStream input; // Global conf keeps track of experiment counter...
-        try {
-            // load a properties file
-            input = new FileInputStream("LibRec_Auto/global_conf.properties");
-            global_conf.load(input);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        this.global_conf = global_conf;
-    }
-
-    private void update_experiment_count(){
-        // This only updates the experiment count and removes any other properties...
-        Integer c =  Integer.valueOf(this.global_conf.getProperty("experiment.count"));
-        c += 1;
-        Properties temp = new Properties();
-        temp.setProperty("experiment.count", c.toString());
-        try {
-            temp.store(new FileOutputStream("LibRec_Auto/global_conf.properties"), null);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        load_global_conf();
-    }
-
     private SparseMatrix genTrainMatrix(){ return genMatrixAux(true);}
     private SparseMatrix genTestMatrix(){ return genMatrixAux(false);}
 
@@ -260,34 +213,14 @@ public class RecommenderJob_auto extends RecommenderJob  {
 
     // Generate files for config_>config.prop, data used, etc
     private String fileNameGenAux(Boolean flag) throws IOException, ClassNotFoundException {
-        String ret;
+        String outputPath = conf.get("dfs.split.dir");
         if (flag) {
-            // Save split ratio value?
-            this.counter_train+=1;
-            ret = "LibRec_Auto/Experiments/experiment0" + this.global_conf.getProperty("experiment.count") +
-                    "/split/train0"+ this.counter_train.toString();
+            outputPath = outputPath+"/train0"+ String.valueOf(conf.getInt("data.splitter.cv.index"));
         }
-        else{ this.counter_test+=1;
-                ret = "LibRec_Auto/Experiments/experiment0" + this.global_conf.getProperty("experiment.count") +
-                        "/split/test0"+ this.counter_test.toString();
+        else{
+            outputPath = outputPath+"/test0"+String.valueOf(conf.getInt("data.splitter.cv.index"));
         }
-        return ret;
-    }
-
-    private void update_result_dir(){
-        String path = "LibRec_Auto/Experiments/experiment0" + this.global_conf.getProperty("experiment.count") +
-                "/results/out0"+ this.counter_train.toString();
-
-        this.conf.set("dfs.result.dir", path);
-    }
-
-    private void copy_conf(){
-        Path source = Paths.get(System.getProperty("user.dir")+"/conf/conf.properties");
-        Path dest = Paths.get(System.getProperty("user.dir")+"/"+"LibRec/Experiments/experiment0"+this.counter_experiment);
-        try{
-            Files.copy(source,dest,StandardCopyOption.REPLACE_EXISTING);
-        }
-        catch (IOException e){}
+        return outputPath;
     }
 
     /***
