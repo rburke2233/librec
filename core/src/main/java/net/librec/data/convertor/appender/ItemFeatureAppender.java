@@ -158,7 +158,7 @@ public class ItemFeatureAppender extends Configured implements DataAppender {
      *
      * @return the {@code SparseMatrix} object built by the social data.
      */
-    public SparseMatrix getItemFeatureAppender() {
+    public SparseMatrix getItemFeatureMatrix() {
         return m_itemFeatureMatrix;
     }
 

@@ -17,6 +17,8 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Collections;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 
 /**
@@ -33,6 +35,8 @@ import java.util.Collections;
  */
 public class UserFeatureAppender extends Configured implements DataAppender {
 
+    protected final Log LOG = LogFactory.getLog(this.getClass());
+
     /** The size of the buffer */
     private static final int BSIZE = 1024 * 1024;
 
@@ -48,7 +52,7 @@ public class UserFeatureAppender extends Configured implements DataAppender {
     protected BiMap<String, Integer> m_userIds;
 
     /**
-     * Initializes a newly created {@code ItemFeatureAppender} object with null.
+     * Initializes a newly created {@code UserFeatureAppender} object with null configuration.
      */
     public UserFeatureAppender() {
         this(null);
@@ -124,15 +128,25 @@ public class UserFeatureAppender extends Configured implements DataAppender {
                 int loopLength = isComplete ? bufferData.length : bufferData.length - 1;
                 for (int i = 0; i < loopLength; i++) {
                     String line = new String(bufferData[i]);
-                    String[] data = line.trim().split("[ \t,]+");
-                    String user = data[0];
-                    String feature = data[1];
-                    Integer value = (data.length >= 3) ? Integer.valueOf(data[2]) : 1;
-                    if (m_userIds.containsKey(user)) {
-                        int row = m_userIds.get(user);
-                        int col = Integer.valueOf(feature);
-                        dataTable.put(row, col, value);
-                        colMap.put(col, row);
+                    // Allow comments
+                    if (line.charAt(0) != '#') {
+                        String[] data = line.trim().split("[ \t,]+");
+                        String user = data[0];
+                        String feature = data[1];
+                        Integer value = (data.length >= 3) ? Integer.valueOf(data[2]) : 1;
+                        if (m_userIds.containsKey(user)) {
+                            int row = m_userIds.get(user);
+                            int col = Integer.valueOf(feature);
+                            if (col >= 0)
+                                dataTable.put(row, col, value);
+                            else {
+                                LOG.info("Illegal user feature value: " + col + " Skipping.");
+                            }
+                            if (col!=0) {
+                                LOG.info("Found a col 1: " + row + " Cool.");
+                            }
+                            colMap.put(col, row);
+                        }
                     }
                 }
                 if (!isComplete) {
@@ -145,7 +159,7 @@ public class UserFeatureAppender extends Configured implements DataAppender {
         }
         int numRows = m_userIds.size();
 
-        int numCols = Collections.max(dataTable.row(0).keySet()) + 1;
+        int numCols = Collections.max(dataTable.columnMap().keySet()) + 1;
 
         // build feature matrix
         m_userFeatureMatrix = new SparseMatrix(numRows, numCols, dataTable, colMap);
@@ -158,8 +172,16 @@ public class UserFeatureAppender extends Configured implements DataAppender {
      *
      * @return the {@code SparseMatrix} object built by the social data.
      */
-    public SparseMatrix getUserFeatureAppender() {
+    public SparseMatrix getUserFeatureMatrix() {
         return m_userFeatureMatrix;
+    }
+
+    public int getUserFeature(String user, int feature) {
+        return (int) m_userFeatureMatrix.get(m_userIds.get(user), feature);
+    }
+
+    public int getUserFeature(int userid, int feature) {
+        return (int) m_userFeatureMatrix.get(userid, feature);
     }
 
     /**
@@ -176,7 +198,7 @@ public class UserFeatureAppender extends Configured implements DataAppender {
     /**
      * Set item mapping data.
      *
-     * Does nothing because we don't use user mapping data for user features
+     * Does nothing because we don't use item mapping data for user features
      */
     @Override
     public void setItemMappingData(BiMap<String, Integer> itemMappingData) {
