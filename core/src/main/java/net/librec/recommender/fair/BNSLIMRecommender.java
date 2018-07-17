@@ -124,16 +124,16 @@ public class BNSLIMRecommender extends FairRecommender {
         //create the nn matrix
         createItemNNs();
 
-        groupMembershipVector = new double[numUsers];
+        groupMembershipVector = new double[numItems];
         //fill in the membership vector by membership numbers (1, -1)
-        for (int userIdx = 0; userIdx < numUsers; userIdx++) {
+        for (int itemIdx = 0; itemIdx < numItems; itemIdx++) {
 
             // Must be group 0 or 1, other groups ignored. By convention, group 0 is protected.
-            if (isUserGroup(userIdx, 0)) {
-                groupMembershipVector[userIdx] = 1;
+            if (isItemGroup(itemIdx, 0)) {
+                groupMembershipVector[itemIdx] = 1;
             } else {
-                if (isUserGroup(userIdx, 1)) {
-                    groupMembershipVector[userIdx] = -1;
+                if (isItemGroup(itemIdx, 1)) {
+                    groupMembershipVector[itemIdx] = -1;
                 }
             }
         }
