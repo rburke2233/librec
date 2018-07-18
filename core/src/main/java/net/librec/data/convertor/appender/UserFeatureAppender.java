@@ -170,7 +170,7 @@ public class UserFeatureAppender extends Configured implements DataAppender {
     /**
      * Get user appender.
      *
-     * @return the {@code SparseMatrix} object built by the social data.
+     * @return the {@code SparseMatrix} object built by the user feature data.
      */
     public SparseMatrix getUserFeatureMatrix() {
         return m_userFeatureMatrix;

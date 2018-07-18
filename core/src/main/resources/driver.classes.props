@@ -10,6 +10,7 @@ social=net.librec.data.convertor.appender.SocialDataAppender
 document=net.librec.data.convertor.appender.DocumentDataAppender
 userfeature=net.librec.data.convertor.appender.UserFeatureAppender
 itemfeature=net.librec.data.convertor.appender.ItemFeatureAppender
+useritemfeatur=net.librec.data.convertor.appender.UserItemFeatureAppender
 #DataSplitter(-splitter)
 ratio=net.librec.data.splitter.RatioDataSplitter
 givenn=net.librec.data.splitter.GivenNDataSplitter

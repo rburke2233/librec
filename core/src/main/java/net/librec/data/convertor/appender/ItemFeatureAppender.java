@@ -154,12 +154,20 @@ public class ItemFeatureAppender extends Configured implements DataAppender {
     }
 
     /**
-     * Get user appender.
+     * Get item appender.
      *
-     * @return the {@code SparseMatrix} object built by the social data.
+     * @return the {@code SparseMatrix} object built by the item feature data.
      */
     public SparseMatrix getItemFeatureMatrix() {
         return m_itemFeatureMatrix;
+    }
+
+    public int getItemFeature(String item, int feature) {
+        return (int) m_itemFeatureMatrix.get(m_itemIds.get(item), feature);
+    }
+
+    public int getItemFeature(int itemid, int feature) {
+        return (int) m_itemFeatureMatrix.get(itemid, feature);
     }
 
     /**
