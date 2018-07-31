@@ -1,14 +1,14 @@
 # set data directory
-dfs.data.dir=data
+dfs.data.dir=../data
 # set result directory
 # recommender result will output in this folder
-dfs.result.dir=result
+dfs.result.dir=../result
 
 # convertor
-# load data and splitting data
+# load data and splitting data 
 # into two (or three) set
 # setting dataset name
-data.input.path=movielens/ml-100k
+data.input.path=filmtrust/rating
 # setting dataset format(UIR, UIRT)
 data.column.format=UIR
 # setting method of split data
@@ -24,8 +24,8 @@ data.model.format=text
 # this value should in (0,1)
 data.splitter.trainset.ratio=0.8
 
-# Detailed configuration of loocv, given, KCV
-# is written in User Guide
+# Detailed configuration of loocv, given, KCV 
+# is written in User Guide 
 
 # set the random seed for reproducing the results (split data, init parameters and other methods using random)
 # default is set 1l
@@ -44,32 +44,13 @@ rec.eval.enable=true
 
 # specifies evaluators
 # rec.eval.classes=auc,precision,recall...
-# if rec.eval.class is blank
+# if rec.eval.class is blank 
 # every evaluator will be calculated
 # rec.eval.classes=auc,precision,recall
 
-
-rec.eval.classes=precision
-rec.recommender.isranking=true
-
-
 # evaluator value set is written in User Guide
-rec.recommender.class=climf
-rec.iterator.learnrate=0.001
-rec.iterator.learnrate.maximum=0.01
-rec.iterator.maximum=100
-rec.user.regularization=0.01
-rec.item.regularization=0.01
-rec.factor.number=10
-rec.learnrate.bolddriver=false
-rec.learnrate.decay=1.0
-rec.recommender.isranking=true
-rec.recommender.ranking.topn=10
-
-
-item_priority_weight=0
+# if this algorithm is ranking only true or false
+rec.recommender.isranking=false
 
 #can use user,item,social similarity, default value is user, maximum values:user,item,social
 #rec.recommender.similarities=user
-
-
